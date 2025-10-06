@@ -1,10 +1,9 @@
-from neocr.core.document import Document
-
 from typing import List, Literal, Union, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .symbol import Symbol
-
+    from .document import Document
+    
 class Group:
     """
     Collection of Symbols after recognition.
