@@ -1,5 +1,4 @@
 __version__ = "0.1.0"
-__all__ = ["core", "io"]
+__all__ = ["core"]
 
 from . import core
-from . import io
