@@ -1,0 +1,79 @@
+name: Post to X
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+  issues:
+    types: [opened]
+  pull_request:
+    types: [closed]
+  discussion:
+    types: [created]
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check if first run
+        id: first_run
+        run: |
+          if [ ! -f .github/.first_run_done ]; then
+            echo "first_run=true" >> $GITHUB_OUTPUT
+          else
+            echo "first_run=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get repo info
+        id: repo_info
+        run: |
+          REPO_NAME="${GITHUB_REPOSITORY#*/}"
+          REPO_DESC=$(gh repo view "$GITHUB_REPOSITORY" --json description -q '.description')
+          REPO_URL="https://github.com/$GITHUB_REPOSITORY"
+          echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
+          echo "repo_desc=$REPO_DESC" >> $GITHUB_OUTPUT
+          echo "repo_url=$REPO_URL" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Post first-run announcement
+        if: steps.first_run.outputs.first_run == 'true'
+        uses: captradeoff/x-post-action@v1.2
+        with:
+          appKey: ${{ secrets.X_APP_KEY }}
+          appSecret: ${{ secrets.X_APP_SECRET }}
+          accessToken: ${{ secrets.X_ACCESS_TOKEN }}
+          accessSecret: ${{ secrets.X_ACCESS_SECRET }}
+          message: |
+            We’ve started working on a new project: **${{ steps.repo_info.outputs.repo_name }}**!
+            Learn more → ${{ steps.repo_info.outputs.repo_url }}
+
+      - name: Mark first run as done
+        if: steps.first_run.outputs.first_run == 'true'
+        run: |
+          mkdir -p .github
+          echo "done" > .github/.first_run_done
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .github/.first_run_done
+          git commit -m "Mark first workflow run as completed"
+          git push
+    
+      - name: Post to X
+        uses: captradeoff/x-post-action@v1.2
+        with:
+          appKey: ${{ secrets.X_APP_KEY }}
+          appSecret: ${{ secrets.X_APP_SECRET }}
+          accessToken: ${{ secrets.X_ACCESS_TOKEN }}
+          accessSecret: ${{ secrets.X_ACCESS_SECRET }}
+          message: |
+            ${{ 
+              github.event_name == 'release' && format('🚀 New release {0} is now available! Check it out → {1}', github.event.release.tag_name, github.event.release.html_url) ||
+              (github.event_name == 'issues' && format('🐛 New issue opened: "{0}" → {1}', github.event.issue.title, github.event.issue.html_url)) ||
+              (github.event_name == 'pull_request' && github.event.pull_request.merged == true && format('🔀 PR merged: "{0}" → {1}', github.event.pull_request.title, github.event.pull_request.html_url)) ||
+              (github.event_name == 'discussion' && format('💬 New discussion: "{0}" → {1}', github.event.discussion.title, github.event.discussion.html_url))
+            }}
