@@ -49,9 +49,8 @@ jobs:
           accessToken: ${{ secrets.X_ACCESS_TOKEN }}
           accessSecret: ${{ secrets.X_ACCESS_SECRET }}
           message: |
-            🧭 We’ve started working on **${{ steps.repo_info.outputs.repo_name }}**
-            ${{ steps.repo_info.outputs.repo_desc }}  
-            Follow the journey → ${{ steps.repo_info.outputs.repo_url }}
+            We’ve started working on a new project: **${{ steps.repo_info.outputs.repo_name }}**!
+            Learn more → ${{ steps.repo_info.outputs.repo_url }}
 
       - name: Mark first run as done
         if: steps.first_run.outputs.first_run == 'true'
