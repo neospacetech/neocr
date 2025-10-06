@@ -60,9 +60,12 @@ class Quant:
     @classmethod
     def from_dict(cls, data):
         from .atom import Atom
-        atoms = [Atom.from_dict(a) for a in data.get("atoms", [])]
+        children = [
+            Atom.from_dict(child) if 'bbox' in child else Quant.from_dict(child)
+            for child in data.get("children", [])
+        ]
         quant = cls(bbox=data.get("bbox"))
-        quant.children = atoms
+        quant.children = children
         quant.type = data.get("type")
         return quant
 

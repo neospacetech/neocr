@@ -30,7 +30,7 @@ class Group:
         from .symbol import Symbol
         group = cls()
         children = [
-            Symbol.from_dict(child) if hasattr(child, 'value') else Group.from_dict(child)
+            Symbol.from_dict(child) if 'value' in child else Group.from_dict(child) 
             for child in data.get("children", [])
         ]
         for c in children:
