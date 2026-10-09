@@ -1,0 +1,10 @@
+[component]
+name = "neocr"
+kind = "engine"
+title = "NeoCR"
+
+[contracts]
+provides_types = []
+consumes_types = []
+emits = []
+depends_on = []
